@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, type Ref } from 'vue';
 import dayjs from 'dayjs';
-import locale from 'dayjs/locale/pl';
+// import locale from 'dayjs/locale/pl';
 
 const emits = defineEmits(['setNewDate']);
 const props = defineProps({

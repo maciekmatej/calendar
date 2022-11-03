@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, type Ref } from 'vue';
 import dayjs from 'dayjs';
-import locale from 'dayjs/locale/pl';
+// import locale from 'dayjs/locale/pl';
 
 const props = defineProps({
   selectedDate: {

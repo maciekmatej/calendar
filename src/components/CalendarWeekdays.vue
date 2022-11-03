@@ -11,10 +11,10 @@ const weekdays = ['Pon', 'Wt', 'Śr', 'Czw', 'Pt', 'Sb', 'Ndz'];
 </template>
 
 <style lang="sass">
-.CalendarMonthDayItem
-  width: 50px
-  height: 50px
-  border-left: 1px solid black
-  border-bottom: 1px solid black
-  border-right: 1px solid black
+.day-of-week
+  color: black
+  background-color: white
+  display: grid
+  grid-template-columns: repeat(7, 150px [col-start])
+  list-style: none
 </style>

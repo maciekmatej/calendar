@@ -3,22 +3,26 @@ import { computed, onMounted, ref, type Ref } from 'vue';
 import dayjs from 'dayjs';
 import weekday from 'dayjs/plugin/weekday';
 import weekOfYear from 'dayjs/plugin/weekOfYear';
+
 import CalendarDateSelector from './CalendarDateSelector.vue';
 import CalendarDateHeader from './CalendarDateHeader.vue';
 import CalendarMonthDayItem from './CalendarMonthDayItem.vue';
+import CalendarDayItem from './CalendarDayItem.vue';
 import CalendarWeekdays from './CalendarWeekdays.vue';
-import locale from 'dayjs/locale/pl';
+// import locale from 'dayjs/locale/pl';
 
 dayjs.extend(weekday);
 dayjs.extend(weekOfYear);
 
 type EventObject = {
   name: string;
-  start: Date;
-  end: Date;
+  start: string;
+  end: string;
   color: string;
 };
+const isOpenDayCalendar = ref(false);
 const selectedDate = ref(dayjs());
+const selectedDateForDayCalendar = ref('');
 const today = computed(() => {
   return dayjs();
 });
@@ -52,7 +56,6 @@ const previousMonthDays = computed(() => {
   const visibleNumberOfDaysFromPreviousMonth = firstDayOfTheMonthWeekday
     ? firstDayOfTheMonthWeekday - 1
     : 6;
-
   const previousMonthLastMondayDayOfMonth = dayjs(
     selectedMonthDays.value[0].date
   )
@@ -62,7 +65,7 @@ const previousMonthDays = computed(() => {
   return [...Array(visibleNumberOfDaysFromPreviousMonth)].map((day, index) => {
     return {
       date: dayjs(
-        `${previousMonth.year()}-${previousMonth.month()}-${
+        `${previousMonth.year()}-${previousMonth.month() + 1}-${
           previousMonthLastMondayDayOfMonth + index
         }`
       ).format('YYYY-MM-DD'),
@@ -82,7 +85,7 @@ const nextMonthDays = computed(() => {
   return [...Array(visibleNumberOfDaysFromNextMonth)].map((day, index) => {
     return {
       date: dayjs(
-        `${nextMonth.year()}-${nextMonth.month()}-${index + 1}`
+        `${nextMonth.year()}-${nextMonth.month() + 1}-${index + 1}`
       ).format('YYYY-MM-DD'),
       isCurrentMonth: false,
     };
@@ -120,17 +123,20 @@ const colors = [
 const events: Ref<EventObject[]> = ref([]);
 
 onMounted(() => {
-  updateRange({ start: '2020-05-12', end: '2020-05-18' });
+  updateRange({ start: '2022-11-03', end: '2022-11-31' });
 });
 const setNewDate = (date: dayjs.Dayjs) => {
   selectedDate.value = date;
+};
+const openDayCalendar = (date: string) => {
+  isOpenDayCalendar.value = true;
+  selectedDateForDayCalendar.value = date;
 };
 const updateRange = ({ start, end }: any) => {
   const min = new Date(`${start}T00:00:00`);
   const max = new Date(`${end}T23:59:59`);
   const days = (max.getTime() - min.getTime()) / 86400000;
-  console.log(`${start}T00:00:00`);
-  const eventCount = rnd(days, days + 20);
+  const eventCount = rnd(days, days + 40);
 
   for (let i = 0; i < eventCount; i++) {
     const allDay = rnd(0, 3) === 0;
@@ -141,8 +147,8 @@ const updateRange = ({ start, end }: any) => {
 
     events.value.push({
       name: names[rnd(0, names.length - 1)],
-      start: first,
-      end: second,
+      start: first.toISOString().slice(0, 16).split('T').join(' '),
+      end: second.toISOString().slice(0, 16).split('T').join(' '),
       color: colors[rnd(0, colors.length - 1)],
     });
   }
@@ -150,36 +156,87 @@ const updateRange = ({ start, end }: any) => {
 const rnd = (a: number, b: number) => {
   return Math.floor((b - a + 1) * Math.random()) + a;
 };
+const filteredDataPerHour = () => {
+  events.value.filter(
+    (item) => item.start === selectedDateForDayCalendar.value
+  );
+};
 </script>
 
 <template>
-  <div class="calendar-month">
-    <div class="calendar-month-header">
-      <CalendarDateHeader :selected-date="selectedDate" />
-      <CalendarDateSelector
-        :selected-date="selectedDate"
-        :current-date="today"
-        @set-new-date="setNewDate"
-      />
+  <div class="TheCalendar">
+    <div class="calendar-month" v-if="!isOpenDayCalendar">
+      <div class="calendar-month-header">
+        <CalendarDateHeader :selected-date="selectedDate" />
+        <CalendarDateSelector
+          :selected-date="selectedDate"
+          :current-date="today"
+          @set-new-date="setNewDate"
+        />
+      </div>
+      <CalendarWeekdays />
+      <ol class="month-calendar-grid">
+        <CalendarMonthDayItem
+          v-for="(day, index) in daysToRenderInCalendar"
+          :key="index"
+          :day="day"
+          :is-today="today.format('YYYY-MM-DD') === day.date"
+          :data="events.filter((item) => item.start.slice(0, 10) === day.date)"
+          @open-day-calendar="openDayCalendar"
+        />
+      </ol>
     </div>
-    <CalendarWeekdays />
-    <ol class="calendar-grid">
-      <CalendarMonthDayItem
-        v-for="(day, index) in daysToRenderInCalendar"
-        :key="index"
-        :day="day"
-      />
-    </ol>
+    <div class="calendar-day" v-else>
+      <div class="calendar-day-header">
+        <CalendarDateHeader :selected-date="selectedDate" />
+        <CalendarDateSelector
+          :selected-date="selectedDate"
+          :current-date="today"
+          @set-new-date="setNewDate"
+        />
+      </div>
+      <ol class="day-calendar-grid">
+        <CalendarDayItem
+          v-for="hour in 24"
+          :key="hour"
+          :hour="hour"
+          :selected-date="selectedDateForDayCalendar"
+          :data="
+            events.filter(
+              (item) => item.start.slice(0, 10) === selectedDateForDayCalendar
+            )
+          "
+        />
+      </ol>
+    </div>
   </div>
 </template>
 
 <style lang="sass">
+.TheCalendar
+  width: 100%
 .calendar-month
-
-  .calendar-grid
+  .month-calendar-grid
     background-color: white
     display: grid
-    grid-template-columns: repeat(7, 50px [col-start])
-    gap: 5px
-    border: 1px solid black
+    grid-template-columns: repeat(7, 150px [col-start])
+
+
+
+  .CalendarMonthDayItem
+    border-top: 1px solid black
+    border-right: 1px solid black
+    &:nth-child(7n + 1)
+      border-left: 1px solid black
+
+    &:nth-child(7n + 1):nth-last-child(-n + 7), &:nth-child(7n + 1):nth-last-child(-n + 7) ~ .CalendarMonthDayItem
+      border-bottom: 1px solid black
+
+.calendar-day
+  .day-calendar-grid
+      background-color: white
+      display: flex
+      flex-direction: column
+      grid-template-columns: 20px 1fr
+      padding: 0
 </style>
