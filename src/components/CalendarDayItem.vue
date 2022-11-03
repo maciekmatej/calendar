@@ -9,6 +9,8 @@ dayjs.extend(isBetween);
 type DayObject = {
   date: string;
   isCurrentMonth: boolean;
+  isNextMonth?: boolean;
+  isPreviousMonth?: boolean;
 };
 type EventObject = {
   name: string;
@@ -47,7 +49,6 @@ const formatedNextHourName = computed(() => {
   return props.hour < 10 ? `0${props.hour}:00` : `${props.hour}:00`;
 });
 
-const goToClickedMonth = (): void => {};
 const openSelectedDayCalendar = (): void => {
   emits('openDayCalendar');
 };

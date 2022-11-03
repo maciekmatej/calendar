@@ -5,6 +5,8 @@ import dayjs from 'dayjs';
 type DayObject = {
   date: string;
   isCurrentMonth: boolean;
+  isNextMonth?: boolean;
+  isPreviousMonth?: boolean;
 };
 type EventObject = {
   name: string;
@@ -34,7 +36,18 @@ const props = defineProps({
 const dayNumber = computed(() => {
   return dayjs(props.day.date).date();
 });
-const goToClickedMonth = (): void => {};
+const goToClickedMonth = (): void => {
+  let newSelectedDate = {};
+  if (props.day.isNextMonth) {
+    newSelectedDate = dayjs(props.selectedDate).add(1, 'month');
+  } else if (props.day.isPreviousMonth) {
+    newSelectedDate = dayjs(props.selectedDate).subtract(1, 'month');
+  } else {
+    return;
+  }
+  console.log(newSelectedDate);
+  emits('setNewDate', newSelectedDate);
+};
 const openSelectedDayCalendar = (): void => {
   emits('openDayCalendar', props.day.date);
 };

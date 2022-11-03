@@ -70,6 +70,7 @@ const previousMonthDays = computed(() => {
         }`
       ).format('YYYY-MM-DD'),
       isCurrentMonth: false,
+      isPreviousMonth: true,
     };
   });
 });
@@ -88,6 +89,7 @@ const nextMonthDays = computed(() => {
         `${nextMonth.year()}-${nextMonth.month() + 1}-${index + 1}`
       ).format('YYYY-MM-DD'),
       isCurrentMonth: false,
+      isNextMonth: true,
     };
   });
 });
@@ -126,6 +128,7 @@ onMounted(() => {
   updateRange({ start: '2022-11-03', end: '2022-11-31' });
 });
 const setNewDate = (date: dayjs.Dayjs) => {
+  console.log('test', date);
   selectedDate.value = date;
 };
 const openDayCalendar = (date: string) => {
@@ -182,7 +185,9 @@ const filteredDataPerHour = () => {
           :day="day"
           :is-today="today.format('YYYY-MM-DD') === day.date"
           :data="events.filter((item) => item.start.slice(0, 10) === day.date)"
+          :selected-date="selectedDate"
           @open-day-calendar="openDayCalendar"
+          @set-new-date="setNewDate"
         />
       </ol>
     </div>
